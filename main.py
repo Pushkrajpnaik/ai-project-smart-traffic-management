@@ -20,14 +20,11 @@ area_2 = set()
 
 # ================= SIGNAL =================
 current_lane = 1
-signal_timer = 0
+signal_timer = 50
+signal_state = "GREEN"   # GREEN / YELLOW
+yellow_time = 10
 
-# ================= MDP =================
-# State -> density
-# Action -> signal timing
-# Reward -> reduced congestion
-# Policy -> choose lane with higher density
-
+# ================= DEBUG =================
 def POINTS(event, x, y, flags, param):
     if event == cv2.EVENT_MOUSEMOVE:
         print([x, y])
@@ -67,7 +64,10 @@ while True:
     # ================= TRACKING =================
     idx_bbox = tracker.update(detections)
 
-    # ================= COUNT + EMERGENCY =================
+    # ================= RESET COUNTS =================
+    area_1.clear()
+    area_2.clear()
+
     emergency = False
     emergency_lane = None
 
@@ -84,13 +84,16 @@ while True:
         # Lane detection
         if cv2.pointPolygonTest(np.array(area1,np.int32),(x3,y3),False) > 0:
             area_1.add(id)
-            if label in ['truck', 'bus']:   # approx emergency
+
+            # Real emergency detection (only if model supports it)
+            if label.lower() in ['ambulance', 'fire truck']:
                 emergency = True
                 emergency_lane = 1
 
         if cv2.pointPolygonTest(np.array(area2,np.int32),(x3,y3),False) > 0:
             area_2.add(id)
-            if label in ['truck', 'bus']:
+
+            if label.lower() in ['ambulance', 'fire truck']:
                 emergency = True
                 emergency_lane = 2
 
@@ -118,15 +121,28 @@ while True:
     # ================= AI SIGNAL CONTROL =================
     if emergency:
         current_lane = emergency_lane
+        signal_state = "GREEN"
         signal_timer = 60
+
     else:
         if signal_timer <= 0:
-            if density1 > density2:
-                current_lane = 1
-                signal_timer = 50
+
+            # GREEN → YELLOW
+            if signal_state == "GREEN":
+                signal_state = "YELLOW"
+                signal_timer = yellow_time
+
+            # YELLOW → SWITCH LANE
             else:
-                current_lane = 2
-                signal_timer = 50
+                signal_state = "GREEN"
+
+                if density1 > density2:
+                    current_lane = 1
+                else:
+                    current_lane = 2
+
+                # Dynamic timing (MDP-like behavior)
+                signal_timer = int(30 + max(density1, density2) * 40)
 
     signal_timer -= 1
 
@@ -141,24 +157,36 @@ while True:
     cv2.putText(frame, f"Lane2: {a2} ({cong2})", (50,90),
                 cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 2)
 
-    # Signal status
+    # ================= SIGNAL DISPLAY =================
     if current_lane == 1:
-        cv2.putText(frame, "Lane1: GREEN", (50,140),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
+        if signal_state == "GREEN":
+            cv2.putText(frame, "Lane1: GREEN", (50,140),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
+        elif signal_state == "YELLOW":
+            cv2.putText(frame, "Lane1: YELLOW", (50,140),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,255), 2)
+
         cv2.putText(frame, "Lane2: RED", (50,180),
                     cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
+
     else:
+        if signal_state == "GREEN":
+            cv2.putText(frame, "Lane2: GREEN", (50,180),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
+        elif signal_state == "YELLOW":
+            cv2.putText(frame, "Lane2: YELLOW", (50,180),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,255), 2)
+
         cv2.putText(frame, "Lane1: RED", (50,140),
                     cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-        cv2.putText(frame, "Lane2: GREEN", (50,180),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
 
-    # Emergency display
+    # ================= EMERGENCY DISPLAY =================
     if emergency:
-        cv2.putText(frame, "EMERGENCY VEHICLE DETECTED", (300,50),
+        cv2.putText(frame, "EMERGENCY VEHICLE DETECTED", (250,50),
                     cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
 
-    print(f"L1:{a1}, L2:{a2}, Density1:{density1:.2f}, Density2:{density2:.2f}, Active:{current_lane}")
+    # ================= DEBUG PRINT =================
+    print(f"L1:{a1}, L2:{a2}, Density1:{density1:.2f}, Density2:{density2:.2f}, Active:{current_lane}, State:{signal_state}")
 
     cv2.imshow("FRAME", frame)
 
