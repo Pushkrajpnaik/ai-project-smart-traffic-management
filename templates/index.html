@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Smart Traffic Management</title>
-    <!-- Use Tailwind CSS for rapid styling -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
@@ -20,7 +19,7 @@
     <!-- Main Content -->
     <main class="flex-grow container mx-auto px-4 py-8">
         
-        <!-- Emergency Alert Banner (Hidden by default) -->
+        <!-- Emergency Alert Banner -->
         <div id="emergency-alert" class="hidden mb-6 bg-red-600 text-white p-4 rounded shadow-lg border border-red-400 flex items-center justify-between animate-pulse">
             <div class="flex items-center">
                 <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -32,14 +31,41 @@
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
             <!-- Video Feed Section -->
-            <div class="lg:col-span-2 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700 flex flex-col">
-                <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-gray-200">Live Intersection Feed</h2>
-                    <span class="text-xs text-gray-400">Powered by YOLOv8</span>
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700 flex flex-col">
+                    <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+                        <h2 class="text-lg font-semibold text-gray-200">Live Feed: <span id="current-video-name" class="text-blue-400">{{ current }}</span></h2>
+                        <span class="text-xs text-gray-400">Powered by YOLOv8</span>
+                    </div>
+                    <div class="w-full bg-black relative flex-grow flex items-center justify-center min-h-[400px]">
+                        <img src="/video_feed" alt="Video Stream" class="w-full h-auto max-h-[600px] object-contain">
+                    </div>
                 </div>
-                <div class="w-full bg-black relative flex-grow flex items-center justify-center min-h-[400px]">
-                    <!-- This image tag continuously pulls the JPEG stream from Flask -->
-                    <img src="/video_feed" alt="Video Stream" class="w-full h-auto max-h-[600px] object-contain">
+
+                <!-- Video Controls -->
+                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Select Video -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Switch Video</h3>
+                            <form action="/select_video" method="POST" class="flex gap-2">
+                                <select name="video" class="bg-gray-700 text-white rounded px-3 py-2 flex-grow border border-gray-600 focus:border-blue-500 outline-none">
+                                    {% for video in videos %}
+                                    <option value="{{ video }}" {% if video == current %}selected{% endif %}>{{ video }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition font-semibold">Switch</button>
+                            </form>
+                        </div>
+                        <!-- Upload Video -->
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Upload New Video</h3>
+                            <form action="/upload_video" method="POST" enctype="multipart/form-data" class="flex gap-2">
+                                <input type="file" name="file" accept=".mp4,.avi,.mov,.mkv" class="bg-gray-700 text-white rounded px-3 py-1 flex-grow border border-gray-600 file:bg-gray-600 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 file:hover:bg-gray-500 cursor-pointer">
+                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-semibold">Upload</button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -106,13 +132,9 @@
         </div>
     </main>
 
-    <!-- JavaScript to Fetch State and Update UI -->
     <script>
         function updateSignalUI(laneId, signalState, timer) {
             const signalDiv = document.getElementById(`${laneId}-signal`);
-            const timerSpan = document.getElementById(`${laneId}-timer`);
-            
-            // Reset classes
             signalDiv.className = "px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] border";
             
             if (signalState === "GREEN") {
@@ -123,7 +145,6 @@
                 signalDiv.classList.add("bg-red-900", "text-red-500", "border-red-700");
             }
             
-            // Text Content
             signalDiv.innerHTML = `${signalState} <span id="${laneId}-timer" class="text-sm ml-1 text-gray-300">(${timer}s)</span>`;
         }
 
@@ -145,19 +166,14 @@
             fetch('/api/state')
                 .then(response => response.json())
                 .then(data => {
-                    // Update Signals
                     updateSignalUI('lane1', data.lane1_signal, data.lane1_timer);
                     updateSignalUI('lane2', data.lane2_signal, data.lane2_timer);
-
-                    // Update Counts
                     document.getElementById('lane1-count').innerText = data.lane1_count;
                     document.getElementById('lane2-count').innerText = data.lane2_count;
-
-                    // Update Densities
                     updateDensityColor('lane1', data.lane1_density);
                     updateDensityColor('lane2', data.lane2_density);
+                    document.getElementById('current-video-name').innerText = data.current_video;
 
-                    // Update Emergency
                     const emergencyAlert = document.getElementById('emergency-alert');
                     if (data.emergency) {
                         emergencyAlert.classList.remove('hidden');
@@ -168,7 +184,6 @@
                 .catch(error => console.error('Error fetching state:', error));
         }
 
-        // Fetch state every 500ms
         setInterval(fetchState, 500);
     </script>
 </body>
