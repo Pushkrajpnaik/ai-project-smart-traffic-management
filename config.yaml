@@ -1,0 +1,31 @@
+# Configuration file for Smart Traffic Management System
+
+model:
+  path: "yolov8n.pt"
+  detected_classes: ["car", "bus", "truck", "motorcycle", "ambulance", "fire truck"]
+  emergency_classes: ["ambulance", "fire truck"]
+
+video:
+  source: "highway.mp4"
+  width: 1020
+  height: 600
+  frame_skip: 3 # Process every 3rd frame
+
+lanes:
+  lane1:
+    polygon: [[275, 445], [275, 485], [530, 485], [530, 445]]
+    capacity: 20
+  lane2:
+    polygon: [[580, 445], [580, 485], [870, 485], [870, 445]]
+    capacity: 20
+
+thresholds:
+  density:
+    low: 0.3
+    medium: 0.7
+
+timing:
+  yellow_time: 10
+  min_green: 15
+  max_green: 60
+  emergency_green: 60

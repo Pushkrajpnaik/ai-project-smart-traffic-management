@@ -1,0 +1,8 @@
+{
+    "total_frames_processed": 774,
+    "emergency_events_detected": 0,
+    "average_ai_wait_time": 0.07493540051679587,
+    "average_fixed_wait_time": 0.1049095607235142,
+    "improvement_percentage": 28.571428571428566,
+    "avg_response_time_emergency_sec": 1.2
+}

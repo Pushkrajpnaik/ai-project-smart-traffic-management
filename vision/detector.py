@@ -1,14 +1,11 @@
 import numpy as np
 from ultralytics import YOLO
 
-DETECTED_CLASSES = {"car", "bus", "truck", "motorcycle", "ambulance", "fire truck"}
-EMERGENCY_CLASSES = {"ambulance", "fire truck"}
-MODEL_PATH = "yolov8n.pt"
-
-
 class VehicleDetector:
-    def __init__(self, model_path: str = MODEL_PATH):
+    def __init__(self, config: dict):
+        model_path = config.get("model", {}).get("path", "yolov8n.pt")
         self.model = YOLO(model_path)
+        self.detected_classes = set(config.get("model", {}).get("detected_classes", ["car", "bus", "truck", "motorcycle", "ambulance", "fire truck"]))
 
     def detect(self, frame):
         """Return a list of vehicle detections for the provided frame."""
@@ -23,7 +20,7 @@ class VehicleDetector:
 
         for box, cls in zip(boxes, classes):
             label = self.model.names.get(int(cls), str(int(cls)))
-            if label not in DETECTED_CLASSES:
+            if label not in self.detected_classes:
                 continue
 
             x1, y1, x2, y2 = map(int, box.tolist())
@@ -33,7 +30,3 @@ class VehicleDetector:
             })
 
         return detections
-
-
-def is_emergency_label(label: str) -> bool:
-    return label in EMERGENCY_CLASSES

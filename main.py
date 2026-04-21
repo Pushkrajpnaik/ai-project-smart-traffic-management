@@ -1,197 +1,125 @@
 import cv2
 import numpy as np
-from tracker import *
-from ultralytics import YOLO
+import yaml
+import argparse
+from agent.traffic_agent import TrafficAgent
+from data_pipeline import DataPipeline
+from evaluation import Evaluator
 
-# ================= MODEL =================
-model = YOLO("yolov8n.pt")
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as f:
+        return yaml.safe_load(f)
 
-cap = cv2.VideoCapture('highway.mp4')
+def run_agentic_loop(video_source, config, demo=False):
+    agent = TrafficAgent(config)
+    pipeline = DataPipeline(config)
+    evaluator = Evaluator(output_dir="results")
 
-count = 0
-tracker = Tracker()
+    cap = cv2.VideoCapture(video_source)
+    count = 0
+    frame_skip = config["video"]["frame_skip"]
 
-# ================= AREAS =================
-area1 = [(275,445),(275,485),(530,485),(530,445)]
-area2 = [(580,445),(580,485),(870,485),(870,445)]
+    # Drawing areas
+    area1 = config["lanes"]["lane1"]["polygon"]
+    area2 = config["lanes"]["lane2"]["polygon"]
 
-area_1 = set()
-area_2 = set()
+    def show_coordinates(event, x, y, flags, param):
+        if event == cv2.EVENT_MOUSEMOVE:
+            print(f"Mouse Coordinates: x={x}, y={y}")
 
-# ================= SIGNAL =================
-current_lane = 1
-signal_timer = 50
-signal_state = "GREEN"   # GREEN / YELLOW
-yellow_time = 10
+    cv2.namedWindow("Smart Traffic Management")
+    cv2.setMouseCallback("Smart Traffic Management", show_coordinates)
 
-# ================= DEBUG =================
-def POINTS(event, x, y, flags, param):
-    if event == cv2.EVENT_MOUSEMOVE:
-        print([x, y])
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
-cv2.namedWindow('FRAME')
-cv2.setMouseCallback('FRAME', POINTS)
+        count += 1
+        if count % frame_skip != 0:
+            continue
 
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
+        # Data Prep
+        frame = pipeline.preprocess_frame(frame)
 
-    count += 1
-    if count % 3 != 0:
-        continue
+        # Perceive
+        state = agent.perceive(frame)
+        
+        # Feature Extraction
+        features = pipeline.extract_features(state)
+        
+        # Reason
+        action = agent.reason(state)
+        
+        # Act
+        signal_state = agent.act(action)
+        
+        # Reflect
+        reward = agent.compute_reward(state)
+        log_entry = agent.reflect(state, action, reward)
+        evaluator.add_record(log_entry)
 
-    frame = cv2.resize(frame, (1020, 600))
+        # ================= DISPLAY =================
+        # Draw areas
+        cv2.polylines(frame, [np.array(area1, np.int32)], True, (0, 255, 255), 2)
+        cv2.polylines(frame, [np.array(area2, np.int32)], True, (0, 255, 255), 2)
 
-    # ================= YOLOv8 DETECTION =================
-    results = model(frame)
+        # Draw bounding boxes and ids
+        for obj in state["tracked_objects"]:
+            x1, y1, x2, y2, obj_id, lane_id = obj
+            label = state["labels_dict"].get(obj_id, "unknown")
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+            cv2.putText(frame, f"{obj_id}:{label}", (x1, y1), cv2.FONT_HERSHEY_PLAIN, 1.5, (255, 0, 0), 2)
+            cv2.circle(frame, (x2, y2), 4, (0, 255, 0), -1)
 
-    detections = []
-    labels = []
+        # Density display
+        cong1 = ["LOW", "MEDIUM", "HIGH"][state["tier_lane1"]]
+        cong2 = ["LOW", "MEDIUM", "HIGH"][state["tier_lane2"]]
+        
+        cv2.putText(frame, f"Lane1: {state['lane1_count']} ({cong1})", (50, 50),
+                    cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
+        cv2.putText(frame, f"Lane2: {state['lane2_count']} ({cong2})", (50, 90),
+                    cv2.FONT_HERSHEY_PLAIN, 2, (255, 0, 0), 2)
 
-    for r in results:
-        boxes = r.boxes.xyxy.cpu().numpy()
-        cls = r.boxes.cls.cpu().numpy()
-
-        for i, box in enumerate(boxes):
-            x1, y1, x2, y2 = map(int, box[:4])
-            detections.append([x1, y1, x2, y2])
-
-            label_id = int(cls[i])
-            label_name = model.names[label_id]
-            labels.append(label_name)
-
-    # ================= TRACKING =================
-    idx_bbox = tracker.update(detections)
-
-    # ================= RESET COUNTS =================
-    area_1.clear()
-    area_2.clear()
-
-    emergency = False
-    emergency_lane = None
-
-    for i, bbox in enumerate(idx_bbox):
-        x2, y2, x3, y3, id = bbox
-        label = labels[i] if i < len(labels) else "unknown"
-
-        cv2.rectangle(frame, (x2,y2), (x3,y3), (0,0,255), 2)
-        cv2.putText(frame, f"{id}:{label}", (x2,y2),
-                    cv2.FONT_HERSHEY_PLAIN, 1.5, (255,0,0), 2)
-
-        cv2.circle(frame, (x3,y3), 4, (0,255,0), -1)
-
-        # Lane detection
-        if cv2.pointPolygonTest(np.array(area1,np.int32),(x3,y3),False) > 0:
-            area_1.add(id)
-
-            # Real emergency detection (only if model supports it)
-            if label.lower() in ['ambulance', 'fire truck']:
-                emergency = True
-                emergency_lane = 1
-
-        if cv2.pointPolygonTest(np.array(area2,np.int32),(x3,y3),False) > 0:
-            area_2.add(id)
-
-            if label.lower() in ['ambulance', 'fire truck']:
-                emergency = True
-                emergency_lane = 2
-
-    # ================= COUNT =================
-    a1 = len(area_1)
-    a2 = len(area_2)
-
-    # ================= DENSITY =================
-    lane_capacity = 20
-    density1 = a1 / lane_capacity
-    density2 = a2 / lane_capacity
-
-    # ================= CONGESTION =================
-    def get_congestion(d):
-        if d < 0.3:
-            return "LOW"
-        elif d < 0.7:
-            return "MEDIUM"
+        # Signal Display
+        color = (0, 255, 0) if signal_state["state"] == "GREEN" else (0, 255, 255)
+        if signal_state["green_lane"] == "lane1":
+            cv2.putText(frame, f"Lane1: {signal_state['state']} ({signal_state['timer']}s)", (50, 140),
+                        cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            cv2.putText(frame, "Lane2: RED", (50, 180),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
         else:
-            return "HIGH"
+            cv2.putText(frame, f"Lane2: {signal_state['state']} ({signal_state['timer']}s)", (50, 180),
+                        cv2.FONT_HERSHEY_PLAIN, 2, color, 2)
+            cv2.putText(frame, "Lane1: RED", (50, 140),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 2)
 
-    cong1 = get_congestion(density1)
-    cong2 = get_congestion(density2)
+        # Emergency Display
+        if state["emergency_flag"]:
+            cv2.putText(frame, "EMERGENCY VEHICLE DETECTED", (250, 50),
+                        cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 255), 3)
 
-    # ================= AI SIGNAL CONTROL =================
-    if emergency:
-        current_lane = emergency_lane
-        signal_state = "GREEN"
-        signal_timer = 60
+        cv2.imshow("Smart Traffic Management", frame)
 
-    else:
-        if signal_timer <= 0:
+        if cv2.waitKey(1) & 0xFF == 27:
+            break
 
-            # GREEN → YELLOW
-            if signal_state == "GREEN":
-                signal_state = "YELLOW"
-                signal_timer = yellow_time
+    cap.release()
+    cv2.destroyAllWindows()
+    
+    # Generate Results
+    evaluator.generate_metrics()
 
-            # YELLOW → SWITCH LANE
-            else:
-                signal_state = "GREEN"
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="AI Smart Traffic Management System")
+    parser.add_argument("--source", type=str, default="highway.mp4", help="Path to video source")
+    parser.add_argument("--demo", action="store_true", help="Run in demo mode")
+    args = parser.parse_args()
 
-                if density1 > density2:
-                    current_lane = 1
-                else:
-                    current_lane = 2
-
-                # Dynamic timing (MDP-like behavior)
-                signal_timer = int(30 + max(density1, density2) * 40)
-
-    signal_timer -= 1
-
-    # ================= DRAW AREAS =================
-    cv2.polylines(frame,[np.array(area1,np.int32)],True,(0,255,255),2)
-    cv2.polylines(frame,[np.array(area2,np.int32)],True,(0,255,255),2)
-
-    # ================= DISPLAY =================
-    cv2.putText(frame, f"Lane1: {a1} ({cong1})", (50,50),
-                cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 2)
-
-    cv2.putText(frame, f"Lane2: {a2} ({cong2})", (50,90),
-                cv2.FONT_HERSHEY_PLAIN, 2, (255,0,0), 2)
-
-    # ================= SIGNAL DISPLAY =================
-    if current_lane == 1:
-        if signal_state == "GREEN":
-            cv2.putText(frame, "Lane1: GREEN", (50,140),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
-        elif signal_state == "YELLOW":
-            cv2.putText(frame, "Lane1: YELLOW", (50,140),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,255), 2)
-
-        cv2.putText(frame, "Lane2: RED", (50,180),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-
-    else:
-        if signal_state == "GREEN":
-            cv2.putText(frame, "Lane2: GREEN", (50,180),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,0), 2)
-        elif signal_state == "YELLOW":
-            cv2.putText(frame, "Lane2: YELLOW", (50,180),
-                        cv2.FONT_HERSHEY_PLAIN, 2, (0,255,255), 2)
-
-        cv2.putText(frame, "Lane1: RED", (50,140),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 2)
-
-    # ================= EMERGENCY DISPLAY =================
-    if emergency:
-        cv2.putText(frame, "EMERGENCY VEHICLE DETECTED", (250,50),
-                    cv2.FONT_HERSHEY_PLAIN, 2, (0,0,255), 3)
-
-    # ================= DEBUG PRINT =================
-    print(f"L1:{a1}, L2:{a2}, Density1:{density1:.2f}, Density2:{density2:.2f}, Active:{current_lane}, State:{signal_state}")
-
-    cv2.imshow("FRAME", frame)
-
-    if cv2.waitKey(1) & 0xFF == 27:
-        break
-
-cap.release()
-cv2.destroyAllWindows()
+    config = load_config()
+    
+    if args.demo:
+        print("Running in DEMO mode.")
+        # If running demo, we could use a specific video or settings
+        
+    run_agentic_loop(args.source, config, args.demo)

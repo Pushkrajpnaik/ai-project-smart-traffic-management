@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Smart Traffic Management</title>
+    <!-- Use Tailwind CSS for rapid styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gray-800 border-b border-gray-700 py-4 shadow-md">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold tracking-wider">🚦 Smart Traffic <span class="text-blue-400">Agent</span></h1>
+            <span class="px-3 py-1 bg-green-900 text-green-300 rounded-full text-sm font-semibold border border-green-700">System Online</span>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-8">
+        
+        <!-- Emergency Alert Banner (Hidden by default) -->
+        <div id="emergency-alert" class="hidden mb-6 bg-red-600 text-white p-4 rounded shadow-lg border border-red-400 flex items-center justify-between animate-pulse">
+            <div class="flex items-center">
+                <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span class="text-xl font-bold">EMERGENCY VEHICLE DETECTED</span>
+            </div>
+            <span class="font-semibold bg-red-800 px-3 py-1 rounded">Signal Overridden</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Video Feed Section -->
+            <div class="lg:col-span-2 bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700 flex flex-col">
+                <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-200">Live Intersection Feed</h2>
+                    <span class="text-xs text-gray-400">Powered by YOLOv8</span>
+                </div>
+                <div class="w-full bg-black relative flex-grow flex items-center justify-center min-h-[400px]">
+                    <!-- This image tag continuously pulls the JPEG stream from Flask -->
+                    <img src="/video_feed" alt="Video Stream" class="w-full h-auto max-h-[600px] object-contain">
+                </div>
+            </div>
+
+            <!-- Dashboard Panels -->
+            <div class="space-y-6">
+                
+                <!-- Lane 1 Card -->
+                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
+                    <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lane 1 Status</h3>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-gray-400">Signal:</span>
+                        <div id="lane1-signal" class="px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] bg-red-900 text-red-500 border border-red-700">
+                            RED <span id="lane1-timer" class="text-sm ml-1 text-gray-300">(0s)</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-3 rounded text-center">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Vehicle Count</span>
+                            <span id="lane1-count" class="text-2xl font-bold">0</span>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded text-center">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Density</span>
+                            <span id="lane1-density" class="text-lg font-bold text-green-400">LOW</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lane 2 Card -->
+                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
+                    <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lane 2 Status</h3>
+                    
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-gray-400">Signal:</span>
+                        <div id="lane2-signal" class="px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] bg-red-900 text-red-500 border border-red-700">
+                            RED <span id="lane2-timer" class="text-sm ml-1 text-gray-300">(0s)</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-gray-700 p-3 rounded text-center">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Vehicle Count</span>
+                            <span id="lane2-count" class="text-2xl font-bold">0</span>
+                        </div>
+                        <div class="bg-gray-700 p-3 rounded text-center">
+                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Density</span>
+                            <span id="lane2-density" class="text-lg font-bold text-green-400">LOW</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- System Info -->
+                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
+                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Agentic Details</h3>
+                    <ul class="text-sm text-gray-300 space-y-2">
+                        <li>• <span class="font-semibold text-gray-100">Perception:</span> YOLOv8 + Density Mapping</li>
+                        <li>• <span class="font-semibold text-gray-100">Reasoning:</span> MDP Controller Heuristics</li>
+                        <li>• <span class="font-semibold text-gray-100">Goal:</span> Minimize total wait time</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript to Fetch State and Update UI -->
+    <script>
+        function updateSignalUI(laneId, signalState, timer) {
+            const signalDiv = document.getElementById(`${laneId}-signal`);
+            const timerSpan = document.getElementById(`${laneId}-timer`);
+            
+            // Reset classes
+            signalDiv.className = "px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] border";
+            
+            if (signalState === "GREEN") {
+                signalDiv.classList.add("bg-green-900", "text-green-400", "border-green-700");
+            } else if (signalState === "YELLOW") {
+                signalDiv.classList.add("bg-yellow-900", "text-yellow-400", "border-yellow-700");
+            } else {
+                signalDiv.classList.add("bg-red-900", "text-red-500", "border-red-700");
+            }
+            
+            // Text Content
+            signalDiv.innerHTML = `${signalState} <span id="${laneId}-timer" class="text-sm ml-1 text-gray-300">(${timer}s)</span>`;
+        }
+
+        function updateDensityColor(laneId, density) {
+            const densitySpan = document.getElementById(`${laneId}-density`);
+            densitySpan.innerText = density;
+            densitySpan.className = "text-lg font-bold";
+            
+            if (density === "LOW") {
+                densitySpan.classList.add("text-green-400");
+            } else if (density === "MEDIUM") {
+                densitySpan.classList.add("text-yellow-400");
+            } else {
+                densitySpan.classList.add("text-red-400");
+            }
+        }
+
+        function fetchState() {
+            fetch('/api/state')
+                .then(response => response.json())
+                .then(data => {
+                    // Update Signals
+                    updateSignalUI('lane1', data.lane1_signal, data.lane1_timer);
+                    updateSignalUI('lane2', data.lane2_signal, data.lane2_timer);
+
+                    // Update Counts
+                    document.getElementById('lane1-count').innerText = data.lane1_count;
+                    document.getElementById('lane2-count').innerText = data.lane2_count;
+
+                    // Update Densities
+                    updateDensityColor('lane1', data.lane1_density);
+                    updateDensityColor('lane2', data.lane2_density);
+
+                    // Update Emergency
+                    const emergencyAlert = document.getElementById('emergency-alert');
+                    if (data.emergency) {
+                        emergencyAlert.classList.remove('hidden');
+                    } else {
+                        emergencyAlert.classList.add('hidden');
+                    }
+                })
+                .catch(error => console.error('Error fetching state:', error));
+        }
+
+        // Fetch state every 500ms
+        setInterval(fetchState, 500);
+    </script>
+</body>
+</html>
