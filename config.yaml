@@ -13,11 +13,11 @@ video:
 
 lanes:
   lane1:
-    polygon: [[275, 445], [275, 485], [530, 485], [530, 445]]
-    capacity: 20
+    polygon: [[50, 400], [50, 580], [500, 580], [500, 400]]
+    capacity: 25
   lane2:
-    polygon: [[580, 445], [580, 485], [870, 485], [870, 445]]
-    capacity: 20
+    polygon: [[550, 400], [550, 580], [980, 580], [980, 400]]
+    capacity: 25
 
 thresholds:
   density:

@@ -37,17 +37,20 @@ class TrafficAgent:
         for i, obj in enumerate(tracked_objects):
             # obj = [x1, y1, x2, y2, id]
             x1, y1, x2, y2, obj_id = obj
-            cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+            
+            # Use bottom center of bounding box for more accurate lane detection
+            # as the base of the vehicle is what touches the road/polygon
+            cx, cy_bottom = (x1 + x2) // 2, y2
             
             label = labels[i] if i < len(labels) else "unknown"
             labels_dict[obj_id] = label
             
             # Determine lane
             lane_id = None
-            if self.density_estimator.is_in_lane((cx, cy), "lane1"):
+            if self.density_estimator.is_in_lane((cx, cy_bottom), "lane1"):
                 lane_counts["lane1"].add(obj_id)
                 lane_id = "lane1"
-            elif self.density_estimator.is_in_lane((cx, cy), "lane2"):
+            elif self.density_estimator.is_in_lane((cx, cy_bottom), "lane2"):
                 lane_counts["lane2"].add(obj_id)
                 lane_id = "lane2"
                 
