@@ -3,129 +3,258 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Smart Traffic Management</title>
+    <title>Traffic Management System | Command Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .mono { font-family: 'JetBrains+Mono', monospace; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); }
+        .status-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans min-h-screen flex flex-col">
+<body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="bg-gray-800 border-b border-gray-700 py-4 shadow-md">
-        <div class="container mx-auto px-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold tracking-wider">🚦 Smart Traffic <span class="text-blue-400">Agent</span></h1>
-            <span class="px-3 py-1 bg-green-900 text-green-300 rounded-full text-sm font-semibold border border-green-700">System Online</span>
+    <!-- Top Navigation / Header -->
+    <header class="border-b border-slate-800 bg-slate-900/50 px-6 py-4">
+        <div class="max-w-[1600px] mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-indigo-600 p-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="8" y="2" width="8" height="20" rx="2" ry="2"/>
+                        <circle cx="12" cy="7" r="2" fill="currentColor"/>
+                        <circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.5"/>
+                        <circle cx="12" cy="17" r="2" fill="currentColor" opacity="0.5"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-white uppercase">Traffic Intelligence</h1>
+                    <p class="text-xs text-slate-500 uppercase tracking-widest font-semibold">Autonomous Signal Control System</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 status-pulse"></span>
+                    <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">System Live</span>
+                </div>
+                <div class="h-8 w-px bg-slate-800"></div>
+                <div class="text-right">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold">Current Node</p>
+                    <p class="text-sm font-semibold text-slate-300">Intersection_A7-North</p>
+                </div>
+            </div>
         </div>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-grow container mx-auto px-4 py-8">
+    <!-- Main Command Interface -->
+    <main class="flex-grow p-6 max-w-[1600px] mx-auto w-full">
         
-        <!-- Emergency Alert Banner -->
-        <div id="emergency-alert" class="hidden mb-6 bg-red-600 text-white p-4 rounded shadow-lg border border-red-400 flex items-center justify-between animate-pulse">
-            <div class="flex items-center">
-                <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                <span class="text-xl font-bold">EMERGENCY VEHICLE DETECTED</span>
+        <!-- Emergency Broadcast Banner -->
+        <div id="emergency-alert" class="hidden mb-6 bg-red-950/80 border border-red-500/50 p-4 rounded-xl flex items-center justify-between shadow-[0_0_30px_rgba(239,68,68,0.2)]">
+            <div class="flex items-center gap-4">
+                <div class="bg-red-500 p-2 rounded-lg animate-pulse">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M3.34 19a2 2 0 0 1-1.72-3l8-14a2 2 0 0 1 3.44 0l8 14a2 2 0 0 1-1.72 3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                </div>
+                <div>
+                    <h2 class="text-red-400 font-bold uppercase tracking-wider">Priority Override Active</h2>
+                    <p class="text-sm text-red-300/80">Emergency responder detected. Traffic signals locked for passage.</p>
+                </div>
             </div>
-            <span class="font-semibold bg-red-800 px-3 py-1 rounded">Signal Overridden</span>
+            <div class="px-4 py-1 rounded bg-red-500 text-white text-xs font-bold uppercase tracking-widest">Immediate Priority</div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-12 gap-6">
             
-            <!-- Video Feed Section -->
-            <div class="lg:col-span-2 space-y-6">
-                <div class="bg-gray-800 rounded-xl overflow-hidden shadow-2xl border border-gray-700 flex flex-col">
-                    <div class="p-3 bg-gray-800 border-b border-gray-700 flex justify-between items-center">
-                        <h2 class="text-lg font-semibold text-gray-200">Live Feed: <span id="current-video-name" class="text-blue-400">{{ current }}</span></h2>
-                        <span class="text-xs text-gray-400">Powered by YOLOv8</span>
+            <!-- Left Panel: Analytics & Feed -->
+            <div class="col-span-12 lg:col-span-9 space-y-6">
+                
+                <!-- Video Stream & Metrics Overlay -->
+                <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl relative">
+                    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-slate-950/80 to-transparent z-10 flex justify-between items-center">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-indigo-500/20 px-3 py-1 rounded-full border border-indigo-500/30">
+                                <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">Feed: <span id="current-video-name" class="text-white">{{ current }}</span></span>
+                            </div>
+                            <div class="bg-slate-950/60 px-3 py-1 rounded-full border border-slate-700/50">
+                                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latency: <span class="text-emerald-400">24ms</span></span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-950/60 px-3 py-1 rounded-full border border-slate-700/50 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Agent Reasoning Active</span>
+                        </div>
                     </div>
-                    <div class="w-full bg-black relative flex-grow flex items-center justify-center min-h-[400px]">
-                        <img src="/video_feed" alt="Video Stream" class="w-full h-auto max-h-[600px] object-contain">
+
+                    <!-- Main Video -->
+                    <div class="bg-black aspect-video flex items-center justify-center">
+                        <img src="/video_feed" alt="System Feed" class="w-full h-full object-contain">
+                    </div>
+
+                    <!-- Bottom HUD -->
+                    <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-slate-950/90 via-slate-950/40 to-transparent flex justify-around items-end">
+                        <div class="text-center">
+                            <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Lane 01 Load</p>
+                            <div class="flex items-center gap-3">
+                                <span id="lane1-count-hud" class="text-4xl font-bold mono text-white">00</span>
+                                <div class="text-left">
+                                    <p id="lane1-density-hud" class="text-xs font-bold text-emerald-400 uppercase tracking-tighter">Low Density</p>
+                                    <div class="w-16 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                        <div id="lane1-progress" class="h-full bg-emerald-500 w-1/4 transition-all duration-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="h-12 w-px bg-slate-800/50"></div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest mb-1">Lane 02 Load</p>
+                            <div class="flex items-center gap-3">
+                                <span id="lane2-count-hud" class="text-4xl font-bold mono text-white">00</span>
+                                <div class="text-left">
+                                    <p id="lane2-density-hud" class="text-xs font-bold text-emerald-400 uppercase tracking-tighter">Low Density</p>
+                                    <div class="w-16 h-1 bg-slate-800 rounded-full mt-1 overflow-hidden">
+                                        <div id="lane2-progress" class="h-full bg-emerald-500 w-1/4 transition-all duration-500"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Video Controls -->
-                <div class="bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-700">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Select Video -->
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Switch Video</h3>
-                            <form action="/select_video" method="POST" class="flex gap-2">
-                                <select name="video" class="bg-gray-700 text-white rounded px-3 py-2 flex-grow border border-gray-600 focus:border-blue-500 outline-none">
-                                    {% for video in videos %}
-                                    <option value="{{ video }}" {% if video == current %}selected{% endif %}>{{ video }}</option>
-                                    {% endfor %}
-                                </select>
-                                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition font-semibold">Switch</button>
-                            </form>
+                <!-- Secondary Control Strip -->
+                <div class="grid grid-cols-2 gap-6">
+                    <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.934a.5.5 0 0 0-.777-.416L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-300">Switch Source</h3>
                         </div>
-                        <!-- Upload Video -->
-                        <div>
-                            <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Upload New Video</h3>
-                            <form action="/upload_video" method="POST" enctype="multipart/form-data" class="flex gap-2">
-                                <input type="file" name="file" accept=".mp4,.avi,.mov,.mkv" class="bg-gray-700 text-white rounded px-3 py-1 flex-grow border border-gray-600 file:bg-gray-600 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:mr-2 file:hover:bg-gray-500 cursor-pointer">
-                                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition font-semibold">Upload</button>
-                            </form>
+                        <form action="/select_video" method="POST" class="flex gap-2">
+                            <select name="video" class="bg-slate-950 text-slate-300 text-sm rounded-xl px-4 py-2.5 flex-grow border border-slate-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all appearance-none cursor-pointer">
+                                {% for video in videos %}
+                                <option value="{{ video }}" {% if video == current %}selected{% endif %}>{{ video }}</option>
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-indigo-600/20">Apply</button>
+                        </form>
+                    </div>
+
+                    <div class="bg-slate-900/50 border border-slate-800 p-5 rounded-2xl">
+                        <div class="flex items-center gap-3 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <h3 class="text-sm font-bold uppercase tracking-widest text-slate-300">Data Injection</h3>
                         </div>
+                        <form action="/upload_video" method="POST" enctype="multipart/form-data" class="flex gap-2">
+                            <label class="flex-grow group">
+                                <div class="bg-slate-950 border border-dashed border-slate-700 group-hover:border-emerald-500/50 rounded-xl px-4 py-2.5 transition-all flex items-center justify-between cursor-pointer">
+                                    <span class="text-xs text-slate-500 group-hover:text-slate-300 truncate max-w-[150px]">Select MP4 sequence...</span>
+                                    <input type="file" name="file" accept=".mp4,.avi,.mov,.mkv" class="hidden">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-slate-600 group-hover:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                                </div>
+                            </label>
+                            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2 rounded-xl transition-all font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/20">Upload</button>
+                        </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Dashboard Panels -->
-            <div class="space-y-6">
+            <!-- Right Panel: Status & Logs -->
+            <div class="col-span-12 lg:col-span-3 space-y-6">
                 
-                <!-- Lane 1 Card -->
-                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
-                    <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lane 1 Status</h3>
+                <!-- Lane 1 Status Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-indigo-500/10 transition-colors"></div>
                     
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-400">Signal:</span>
-                        <div id="lane1-signal" class="px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] bg-red-900 text-red-500 border border-red-700">
-                            RED <span id="lane1-timer" class="text-sm ml-1 text-gray-300">(0s)</span>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sector Alpha</p>
+                            <h3 class="text-lg font-bold text-white tracking-tight">Lane 01 Status</h3>
+                        </div>
+                        <div id="lane1-indicator" class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-700 p-3 rounded text-center">
-                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Vehicle Count</span>
-                            <span id="lane1-count" class="text-2xl font-bold">0</span>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Active Signal</span>
+                            <div id="lane1-signal-box" class="px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold mono text-sm">RED</div>
                         </div>
-                        <div class="bg-gray-700 p-3 rounded text-center">
-                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Density</span>
-                            <span id="lane1-density" class="text-lg font-bold text-green-400">LOW</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Remaining</span>
+                            <span id="lane1-timer-box" class="text-lg font-bold mono text-white">00:00</span>
+                        </div>
+                        <div class="pt-4 border-t border-slate-800 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Density</p>
+                                <p id="lane1-density-box" class="text-xs font-bold text-emerald-400">Low</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Vehicles</p>
+                                <p id="lane1-count-box" class="text-xs font-bold text-white mono">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Lane 2 Card -->
-                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
-                    <h3 class="text-xl font-bold mb-4 border-b border-gray-700 pb-2">Lane 2 Status</h3>
+                <!-- Lane 2 Status Card -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-indigo-500/10 transition-colors"></div>
                     
-                    <div class="flex justify-between items-center mb-4">
-                        <span class="text-gray-400">Signal:</span>
-                        <div id="lane2-signal" class="px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] bg-red-900 text-red-500 border border-red-700">
-                            RED <span id="lane2-timer" class="text-sm ml-1 text-gray-300">(0s)</span>
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Sector Beta</p>
+                            <h3 class="text-lg font-bold text-white tracking-tight">Lane 02 Status</h3>
+                        </div>
+                        <div id="lane2-indicator" class="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center">
+                            <div class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="bg-gray-700 p-3 rounded text-center">
-                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Vehicle Count</span>
-                            <span id="lane2-count" class="text-2xl font-bold">0</span>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Active Signal</span>
+                            <div id="lane2-signal-box" class="px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold mono text-sm">RED</div>
                         </div>
-                        <div class="bg-gray-700 p-3 rounded text-center">
-                            <span class="block text-xs text-gray-400 uppercase tracking-wide">Density</span>
-                            <span id="lane2-density" class="text-lg font-bold text-green-400">LOW</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Remaining</span>
+                            <span id="lane2-timer-box" class="text-lg font-bold mono text-white">00:00</span>
+                        </div>
+                        <div class="pt-4 border-t border-slate-800 grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Density</p>
+                                <p id="lane2-density-box" class="text-xs font-bold text-emerald-400">Low</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">Vehicles</p>
+                                <p id="lane2-count-box" class="text-xs font-bold text-white mono">0</p>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- System Info -->
-                <div class="bg-gray-800 rounded-xl p-5 shadow-lg border border-gray-700">
-                    <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-3">Agentic Details</h3>
-                    <ul class="text-sm text-gray-300 space-y-2">
-                        <li>• <span class="font-semibold text-gray-100">Perception:</span> YOLOv8 + Density Mapping</li>
-                        <li>• <span class="font-semibold text-gray-100">Reasoning:</span> MDP Controller Heuristics</li>
-                        <li>• <span class="font-semibold text-gray-100">Goal:</span> Minimize total wait time</li>
-                    </ul>
+
+                <!-- System Logs / Intelligence -->
+                <div class="bg-slate-900/40 border border-slate-800 rounded-2xl p-5">
+                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+                        Intelligence Core
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex gap-3">
+                            <div class="w-1 h-8 bg-indigo-500 rounded-full"></div>
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-300">MDP Optimizer</p>
+                                <p class="text-[10px] text-slate-500">Heuristic-based timing active</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="w-1 h-8 bg-emerald-500 rounded-full"></div>
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-300">Vision Engine</p>
+                                <p class="text-[10px] text-slate-500">YOLOv8 Object Tracking</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
             </div>
@@ -133,45 +262,76 @@
     </main>
 
     <script>
-        function updateSignalUI(laneId, signalState, timer) {
-            const signalDiv = document.getElementById(`${laneId}-signal`);
-            signalDiv.className = "px-4 py-1 rounded font-bold text-lg text-center min-w-[100px] border";
-            
-            if (signalState === "GREEN") {
-                signalDiv.classList.add("bg-green-900", "text-green-400", "border-green-700");
-            } else if (signalState === "YELLOW") {
-                signalDiv.classList.add("bg-yellow-900", "text-yellow-400", "border-yellow-700");
-            } else {
-                signalDiv.classList.add("bg-red-900", "text-red-500", "border-red-700");
-            }
-            
-            signalDiv.innerHTML = `${signalState} <span id="${laneId}-timer" class="text-sm ml-1 text-gray-300">(${timer}s)</span>`;
-        }
+        function updateUI(laneId, data) {
+            const signal = data[`${laneId}_signal`];
+            const timer = data[`${laneId}_timer`];
+            const count = data[`${laneId}_count`];
+            const density = data[`${laneId}_density`];
 
-        function updateDensityColor(laneId, density) {
-            const densitySpan = document.getElementById(`${laneId}-density`);
-            densitySpan.innerText = density;
-            densitySpan.className = "text-lg font-bold";
+            // Update Signal UI
+            const indicator = document.getElementById(`${laneId}-indicator`);
+            const signalBox = document.getElementById(`${laneId}-signal-box`);
+            const timerBox = document.getElementById(`${laneId}-timer-box`);
+            const densityBox = document.getElementById(`${laneId}-density-box`);
+            const countBox = document.getElementById(`${laneId}-count-box`);
             
-            if (density === "LOW") {
-                densitySpan.classList.add("text-green-400");
-            } else if (density === "MEDIUM") {
-                densitySpan.classList.add("text-yellow-400");
+            // HUD Elements
+            const hudCount = document.getElementById(`${laneId}-count-hud`);
+            const hudDensity = document.getElementById(`${laneId}-density-hud`);
+            const hudProgress = document.getElementById(`${laneId}-progress`);
+
+            // Update values
+            timerBox.innerText = `00:${timer.toString().padStart(2, '0')}`;
+            countBox.innerText = count;
+            hudCount.innerText = count.toString().padStart(2, '0');
+            densityBox.innerText = density;
+            hudDensity.innerText = `${density} Density`;
+
+            // Signal Colors
+            if (signal === "GREEN") {
+                indicator.className = "w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center";
+                indicator.innerHTML = '<div class="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>';
+                signalBox.className = "px-3 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold mono text-sm";
+                signalBox.innerText = "GREEN";
+            } else if (signal === "YELLOW") {
+                indicator.className = "w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center";
+                indicator.innerHTML = '<div class="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]"></div>';
+                signalBox.className = "px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold mono text-sm";
+                signalBox.innerText = "YELLOW";
             } else {
-                densitySpan.classList.add("text-red-400");
+                indicator.className = "w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center";
+                indicator.innerHTML = '<div class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>';
+                signalBox.className = "px-3 py-1 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 font-bold mono text-sm";
+                signalBox.innerText = "RED";
             }
+
+            // Density Colors & HUD Progress
+            let colorClass = "text-emerald-400";
+            let barColor = "bg-emerald-500";
+            let width = "25%";
+            
+            if (density === "MEDIUM") {
+                colorClass = "text-amber-400";
+                barColor = "bg-amber-500";
+                width = "60%";
+            } else if (density === "HIGH") {
+                colorClass = "text-red-400";
+                barColor = "bg-red-500";
+                width = "95%";
+            }
+            
+            densityBox.className = `text-xs font-bold ${colorClass}`;
+            hudDensity.className = `text-xs font-bold ${colorClass} uppercase tracking-tighter`;
+            hudProgress.className = `h-full ${barColor} transition-all duration-500`;
+            hudProgress.style.width = width;
         }
 
         function fetchState() {
             fetch('/api/state')
                 .then(response => response.json())
                 .then(data => {
-                    updateSignalUI('lane1', data.lane1_signal, data.lane1_timer);
-                    updateSignalUI('lane2', data.lane2_signal, data.lane2_timer);
-                    document.getElementById('lane1-count').innerText = data.lane1_count;
-                    document.getElementById('lane2-count').innerText = data.lane2_count;
-                    updateDensityColor('lane1', data.lane1_density);
-                    updateDensityColor('lane2', data.lane2_density);
+                    updateUI('lane1', data);
+                    updateUI('lane2', data);
                     document.getElementById('current-video-name').innerText = data.current_video;
 
                     const emergencyAlert = document.getElementById('emergency-alert');
@@ -181,7 +341,7 @@
                         emergencyAlert.classList.add('hidden');
                     }
                 })
-                .catch(error => console.error('Error fetching state:', error));
+                .catch(error => console.error('Error:', error));
         }
 
         setInterval(fetchState, 500);

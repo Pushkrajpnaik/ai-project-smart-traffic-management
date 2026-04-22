@@ -31,34 +31,64 @@ Unlike a simple pipeline, this system is governed by a `TrafficAgent` that opera
 ## Dataset
 The system is designed to work with real-time video feeds or pre-recorded videos (like `highway.mp4`). For training and benchmarking, datasets like UA-DETRAC or VIRAT can be utilized to fine-tune the YOLOv8 model for specific angles and vehicle types.
 
-## Installation & How to Run
+## Installation & Setup
 
-1. Clone the repository and navigate to the project directory:
+To run this project on a different PC, follow these detailed steps to ensure all dependencies and environments are correctly configured.
+
+### Prerequisites
+- **Python 3.8 or higher**: Ensure Python is installed. You can check this by running `python --version` in your terminal.
+- **Git**: To clone the repository.
+- **FFmpeg (Optional)**: For advanced video processing, though not strictly required for the basic agent loop.
+
+### 1. Environment Setup
+It is highly recommended to use a virtual environment to avoid dependency conflicts:
 ```bash
-git clone https://github.com/Pushkrajpnaik/ai-project-smart-traffic-management.git
-cd ai-project-smart-traffic-management
+# Create a virtual environment
+python -m venv venv
+
+# Activate it
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
 ```
 
-2. Install dependencies:
+### 2. Install Required Libraries
+Install the core AI and web dependencies using the provided requirements file:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Run the system:
+If you encounter any issues, you can manually install the critical packages:
 ```bash
-python main.py --source highway.mp4
+pip install opencv-python ultralytics pyyaml flask matplotlib
 ```
 
-To run in demo mode:
+### 3. YOLOv8 Model Weights
+The system uses the `yolov8n.pt` (Nano) model by default for speed. The first time you run the script, it will automatically download the weights from Ultralytics. Ensure you have an active internet connection for the first run.
+
+### 4. Running the Project
+
+#### **A. Web Dashboard (Recommended)**
+To launch the modern web-based command center:
+```bash
+python app.py
+```
+Then open your browser and navigate to `http://127.0.0.1:5000`.
+
+#### **B. CLI Demo Mode**
+To run the processing loop directly in a CV2 window:
 ```bash
 python main.py --demo
 ```
 
-## Results Summary
-The integration of Agentic AI provides a significant improvement over fixed-time signal controllers:
-- **Average Wait Time Reduction:** Simulated results show up to a 40% reduction in vehicle wait times compared to fixed-time signals.
-- **Emergency Response:** Emergency vehicles are detected and prioritized, reducing intersection wait times for ambulances/fire trucks to under 3 seconds.
-- **Metrics & Plots:** Generated automatically in the `results/` folder (includes wait time comparisons and density tier distributions).
+#### **C. Custom Video Source**
+To run against a specific video file:
+```bash
+python main.py --source your_video.mp4
+```
+
+---
 
 ## Project Structure
 ```text
